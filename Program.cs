@@ -9,11 +9,17 @@ namespace SharpEngine
     {
         static float[] vertices = new float[] {
             // vertex 1 x, y, z
-            -.5f, -.5f, 0f,
+            -.1f, -.1f, 0f,
             // vertex 2 x, y, z
-            .5f, -.5f, 0f,
+            .1f, -.1f, 0f,
             // vertex 3 x, y, z
-            0f, .5f, 0f
+            0f, .1f, 0f,
+            // vertex 1 x, y, z
+            .4f, .4f, 0f,
+            // vertex 2 x, y, z
+            .6f, .4f, 0f,
+            // vertex 3 x, y, z
+            .5f, .6f, 0f
         };
 
         private const int vertexX = 0;
@@ -32,9 +38,9 @@ namespace SharpEngine
                 Glfw.PollEvents(); // react to window changes (position etc.)
                 ClearScreen();
                 Render();
-                for (var i = vertexY; i < vertices.Length; i += vertexSize)
+                for (var i = 0; i < vertices.Length; i ++ )
                 {
-                    vertices[i] -= 0.0001f;
+                    vertices[i] *= 1.0001f;
                 }
                 UpdateTriangleBuffer();
             }
