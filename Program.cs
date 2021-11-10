@@ -63,17 +63,31 @@ namespace SharpEngine
             LoadTriangleIntoBuffer();
 
             CreateShaderProgram();
-
+            
             // engine rendering loop
             while (!Glfw.WindowShouldClose(window)) {
                 Glfw.PollEvents(); // react to window changes (position etc.)
                 ClearScreen();
                 Render(window);
+                
+                var moveX = .001f;
+                var moveY = 0f;
+                var moveZ = 0f;
+                
                 for (var i = 0; i < vertices.Length; i ++ )
                 {
-                    vertices[i].x += .001f;
-                    vertices[i].y += .001f;
+                    vertices[i].x += moveX;
+                    
+                    for (int j = 0; j < vertices.Length; j++)
+                    {
+                        if (vertices[j].x > 1)
+                        {
+                            moveX = -moveX; break;
+                        }
+                    }
                 }
+
+                
                 UpdateTriangleBuffer();
             }
         }
