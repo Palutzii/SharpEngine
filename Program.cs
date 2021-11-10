@@ -22,6 +22,15 @@ namespace SharpEngine
             this.y = y;
             this.z = 0;
         }
+
+        public static Vector operator *(Vector v, float f)
+        {
+            return new Vector(v.x * f, v.y * f, v.z * f);
+        }
+        
+        // +
+        // -
+        // /
     }
     
     class Program
@@ -51,7 +60,7 @@ namespace SharpEngine
                 Render(window);
                 for (var i = 0; i < vertices.Length; i ++ )
                 {
-                    vertices[i].x += 0.001f;
+                    vertices[i] *= 1.001f;
                 }
                 UpdateTriangleBuffer();
             }
