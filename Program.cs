@@ -1,21 +1,63 @@
 ﻿using System.IO;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using GLFW;
 using static OpenGL.Gl;
 
 namespace SharpEngine
 {
+    public class Triangle
+         {
+             private Vertex[] vertices;
+             public Triangle(Vertex[] vertices)
+             {
+                 this.vertices = vertices;
+             }
+             
+             public float CurrentScale { get; private set; }
+
+             public void Scale(float multiplier)
+             {
+                 // 1. Scale the Triangle without Moving it
+                
+                 // 1.1 Move the Triangle to the Center, so we can scale it without Side Effects
+                 // 1.1.1 Find the Center of the Triangle
+                 // 1.1.1.1 Find the Minimum and Maximum
+                 var min = vertices[0].position;
+                 for (var i = 1; i < vertices.Length; i++) {
+                     min = Vector.Min(min, vertices[i].position);
+                 }
+                 var max = vertices[0].position;
+                 for (var i = 1; i < vertices.Length; i++) {
+                     max = Vector.Max(max, vertices[i].position);
+                 }
+                 // 1.1.1.2 Average out the Minimum and Maximum to get the Center
+                 var center = (min + max) / 2;
+                 // 1.1.2 Move the Triangle the Center
+                 for (var i = 0; i < vertices.Length; i++) {
+                     vertices[i].position -= center;
+                 }
+                 // 1.2 Scale the Triangle
+                 for (var i = 0; i < vertices.Length; i++) {
+                     vertices[i].position *= multiplier;
+                 }
+                 // 1.3 Move the Triangle Back to where it was before
+                 for (var i = 0; i < vertices.Length; i++) {
+                     vertices[i].position += center;
+                 }
+             }
+         }
     class Program
     {
         
-        static Vertex[] vertices = new Vertex[] {
-            // new Vector(-.1f, -.1f),
-            // new Vector(.1f, -.1f),
-            // new Vector(0f, .1f),
+        
+        static Triangle triangle = new Triangle(new Vertex[]{ 
+            
             new Vertex(new Vector(0f, 0f), Color.Red),
             new Vertex(new Vector(1f, 0f), Color.Green),
             new Vertex(new Vector(0f, 1f), Color.Blue)
-        };
+            
+        });
         
         static void Main(string[] args) {
             
@@ -34,33 +76,7 @@ namespace SharpEngine
                 ClearScreen();
                 Render(window);
                 
-                // 1. Scale the Triangle without Moving it
-                
-                // 1.1 Move the Triangle to the Center, so we can scale it without Side Effects
-                // 1.1.1 Find the Center of the Triangle
-                // 1.1.1.1 Find the Minimum and Maximum
-                var min = vertices[0].position;
-                for (var i = 1; i < vertices.Length; i++) {
-                    min = Vector.Min(min, vertices[i].position);
-                }
-                var max = vertices[0].position;
-                for (var i = 1; i < vertices.Length; i++) {
-                    max = Vector.Max(max, vertices[i].position);
-                }
-                // 1.1.1.2 Average out the Minimum and Maximum to get the Center
-                var center = (min + max) / 2;
-                // 1.1.2 Move the Triangle the Center
-                for (var i = 0; i < vertices.Length; i++) {
-                    vertices[i].position -= center;
-                }
-                // 1.2 Scale the Triangle
-                for (var i = 0; i < vertices.Length; i++) {
-                    vertices[i].position *= multiplier;
-                }
-                // 1.3 Move the Triangle Back to where it was before
-                for (var i = 0; i < vertices.Length; i++) {
-                    vertices[i].position += center;
-                }
+                triangle.Scale(multiplier);
                 
                 // 2. Keep track of the Scale, so we can reverse it
                 scale *= multiplier;
@@ -130,8 +146,8 @@ namespace SharpEngine
             glBindVertexArray(vertexArray);
             glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
             UpdateTriangleBuffer();
-            glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(Vertex), NULL);
-            glVertexAttribPointer(1, 4, GL_FLOAT, false, sizeof(Vertex), (void*) sizeof(Vector));
+            glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(Vertex), Marshal.OffsetOf(typeof(Vertex), nameof(Vertex.position)));
+            glVertexAttribPointer(1, 4, GL_FLOAT, false, sizeof(Vertex), Marshal.OffsetOf(typeof(Vertex), nameof(Vertex.color)));
             glEnableVertexAttribArray(0);
             glEnableVertexAttribArray(1);
         }
