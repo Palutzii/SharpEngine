@@ -1,179 +1,77 @@
-﻿using System.IO;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using GLFW;
-using static OpenGL.Gl;
+﻿using System;
+using System.Collections.Generic;
 
 namespace SharpEngine
 {
-    public class Triangle
-         {
-             private Vertex[] vertices;
-             public Triangle(Vertex[] vertices)
-             {
-                 this.vertices = vertices;
-             }
-             
-             public float CurrentScale { get; private set; }
+    class Program {
+        static float Lerp(float from, float to, float t) {
+            return from + (to - from) * t;
+        }
 
-             public void Scale(float multiplier)
-             {
-                 // 1. Scale the Triangle without Moving it
-                
-                 // 1.1 Move the Triangle to the Center, so we can scale it without Side Effects
-                 // 1.1.1 Find the Center of the Triangle
-                 // 1.1.1.1 Find the Minimum and Maximum
-                 var min = vertices[0].position;
-                 for (var i = 1; i < vertices.Length; i++) {
-                     min = Vector.Min(min, vertices[i].position);
-                 }
-                 var max = vertices[0].position;
-                 for (var i = 1; i < vertices.Length; i++) {
-                     max = Vector.Max(max, vertices[i].position);
-                 }
-                 // 1.1.1.2 Average out the Minimum and Maximum to get the Center
-                 var center = (min + max) / 2;
-                 // 1.1.2 Move the Triangle the Center
-                 for (var i = 0; i < vertices.Length; i++) {
-                     vertices[i].position -= center;
-                 }
-                 // 1.2 Scale the Triangle
-                 for (var i = 0; i < vertices.Length; i++) {
-                     vertices[i].position *= multiplier;
-                 }
-                 // 1.3 Move the Triangle Back to where it was before
-                 for (var i = 0; i < vertices.Length; i++) {
-                     vertices[i].position += center;
-                 }
-             }
-         }
-    class Program
-    {
+        static float GetRandomFloat(Random random, float min = 0, float max = 1) {
+            return Lerp(min, max, (float)random.Next() / int.MaxValue);
+        }
         
-        
-        static Triangle triangle = new Triangle(new Vertex[]{ 
-            
-            new Vertex(new Vector(0f, 0f), Color.Red),
-            new Vertex(new Vector(1f, 0f), Color.Green),
-            new Vertex(new Vector(0f, 1f), Color.Blue)
-            
-        });
+        static void FillSceneWithTriangles(Scene scene, Material material) {
+            var random = new Random();
+            for (var i = 0; i < 10; i++) {
+                var triangle = new Triangle(new Vertex[] {
+                    new Vertex(new Vector(-.1f, 0f), Color.Red),
+                    new Vertex(new Vector(.1f, 0f), Color.Green),
+                    new Vertex(new Vector(0f, .133f), Color.Blue)
+                }, material);
+                triangle.Rotate(GetRandomFloat(random));
+                triangle.Move(new Vector(GetRandomFloat(random, -1, 1), GetRandomFloat(random, -1, 1)));
+                scene.Add(triangle);
+            }
+        }
         
         static void Main(string[] args) {
             
-            var window = CreateWindow();
+            var window = new Window();
+            var material = new Material("shaders/position-color.vert", "shaders/vertex-color.frag");
+            var scene = new Scene();
+            window.Load(scene);
 
-            LoadTriangleIntoBuffer();
-
-            CreateShaderProgram();
-
+            FillSceneWithTriangles(scene, material);
+            
             // engine rendering loop
             var direction = new Vector(0.0003f, 0.0003f);
             var multiplier = 0.999f;
-            var scale = 1f;
-            while (!Glfw.WindowShouldClose(window)) {
-                Glfw.PollEvents(); // react to window changes (position etc.)
-                ClearScreen();
-                Render(window);
-                
-                triangle.Scale(multiplier);
-                
-                // 2. Keep track of the Scale, so we can reverse it
-                scale *= multiplier;
-                if (scale <= 0.5f) {
-                    multiplier = 1.001f;
-                }
-                if (scale >= 1f) {
-                    multiplier = 0.999f;
-                }
+            var rotation = 0.0005f;
+            while (window.IsOpen()) {
 
-                // 3. Move the Triangle by its Direction
-                for (var i = 0; i < vertices.Length; i++) {
-                    vertices[i].position += direction;
-                }
-                // 4. Check the X-Bounds of the Screen
-                for (var i = 0; i < vertices.Length; i++) {
-                    if (vertices[i].position.x >= 1 && direction.x > 0 || vertices[i].position.x <= -1 && direction.x < 0) {
+                // Update Triangles
+                for (var i = 0; i < scene.triangles.Count; i++) {
+                    var triangle = scene.triangles[i];
+                
+                    // 2. Keep track of the Scale, so we can reverse it
+                    if (triangle.CurrentScale <= 0.5f) {
+                        multiplier = 1.001f;
+                    }
+                    if (triangle.CurrentScale >= 1f) {
+                        multiplier = 0.999f;
+                    }
+                    
+                    triangle.Scale(multiplier);
+                    triangle.Rotate(rotation);
+                
+                    // 4. Check the X-Bounds of the Screen
+                    if (triangle.GetMaxBounds().x >= 1 && direction.x > 0 || triangle.GetMinBounds().x <= -1 && direction.x < 0) {
                         direction.x *= -1;
-                        break;
                     }
-                }
-                // 5. Check the Y-Bounds of the Screen
-                for (var i = 0; i < vertices.Length; i++) {
-                    if (vertices[i].position.y >= 1 && direction.y > 0 || vertices[i].position.y <= -1 && direction.y < 0) {
+                
+                    // 5. Check the Y-Bounds of the Screen
+                    if (triangle.GetMaxBounds().y >= 1 && direction.y > 0 || triangle.GetMinBounds().y <= -1 && direction.y < 0) {
                         direction.y *= -1;
-                        break;
                     }
+                    
+                    
+                    triangle.Move(direction);
                 }
-
-                UpdateTriangleBuffer();
+                
+                window.Render();
             }
-        }
-
-        static void Render(Window window) {
-            glDrawArrays(GL_TRIANGLES, 0, vertices.Length);
-            Glfw.SwapBuffers(window);
-            //glFlush();
-        }
-
-        static void ClearScreen() {
-            glClearColor(.2f, .05f, .2f, 1);
-            glClear(GL_COLOR_BUFFER_BIT);
-        }
-
-        static void CreateShaderProgram() {
-            // create vertex shader
-            var vertexShader = glCreateShader(GL_VERTEX_SHADER);
-            glShaderSource(vertexShader, File.ReadAllText("shaders/position-color.vert"));
-            glCompileShader(vertexShader);
-
-            // create fragment shader
-            var fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-            glShaderSource(fragmentShader, File.ReadAllText("shaders/vertex-color.frag"));
-            glCompileShader(fragmentShader);
-
-            // create shader program - rendering pipeline
-            var program = glCreateProgram();
-            glAttachShader(program, vertexShader);
-            glAttachShader(program, fragmentShader);
-            glLinkProgram(program);
-            glUseProgram(program);
-        }
-
-        static unsafe void LoadTriangleIntoBuffer() {
-            var vertexArray = glGenVertexArray();
-            var vertexBuffer = glGenBuffer();
-            glBindVertexArray(vertexArray);
-            glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-            UpdateTriangleBuffer();
-            glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(Vertex), Marshal.OffsetOf(typeof(Vertex), nameof(Vertex.position)));
-            glVertexAttribPointer(1, 4, GL_FLOAT, false, sizeof(Vertex), Marshal.OffsetOf(typeof(Vertex), nameof(Vertex.color)));
-            glEnableVertexAttribArray(0);
-            glEnableVertexAttribArray(1);
-        }
-        
-        static unsafe void UpdateTriangleBuffer() {
-            fixed (Vertex* vertex = &vertices[0]) {
-                glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.Length, vertex, GL_DYNAMIC_DRAW);
-            }
-        }
-
-        static Window CreateWindow() {
-            // initialize and configure
-            Glfw.Init();
-            Glfw.WindowHint(Hint.ClientApi, ClientApi.OpenGL);
-            Glfw.WindowHint(Hint.ContextVersionMajor, 3);
-            Glfw.WindowHint(Hint.ContextVersionMinor, 3);
-            Glfw.WindowHint(Hint.Decorated, true);
-            Glfw.WindowHint(Hint.OpenglProfile, Profile.Core);
-            Glfw.WindowHint(Hint.OpenglForwardCompatible, Constants.True);
-            Glfw.WindowHint(Hint.Doublebuffer, Constants.True);
-
-            // create and launch a window
-            var window = Glfw.CreateWindow(1024, 768, "SharpEngine", Monitor.None, Window.None);
-            Glfw.MakeContextCurrent(window);
-            Import(Glfw.GetProcAddress);
-            return window;
         }
     }
 }
