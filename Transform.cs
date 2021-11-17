@@ -7,7 +7,9 @@
         public Vector Rotation { get; set; }
         public Matrix Matrix => Matrix.Translation(Position) * Matrix.Rotation(Rotation) * Matrix.Scale(CurrentScale);
 
-        public Transform() 
+        public Vector Forward => Matrix.Transform(Matrix, Vector.Forward, 0);
+
+        public Transform()
         {
             this.CurrentScale = new Vector(1, 1, 1);
         }
@@ -22,7 +24,7 @@
             this.Position += direction;
         }
 
-        public void Rotate(float zAngle) 
+        public void Rotate(float zAngle)
         {
             var rotation = this.Rotation;
             rotation.z += zAngle;

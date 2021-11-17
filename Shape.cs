@@ -13,7 +13,7 @@ namespace SharpEngine
 		public Transform Transform { get; }
 		public Material material;
             
-		public Shape(Vertex[] vertices, Material material) 
+		public Shape(Vertex[] vertices, Material material)
 		{
 			this.vertices = vertices;
 			this.material = material;
@@ -21,7 +21,7 @@ namespace SharpEngine
 			this.Transform = new Transform();
 		}
 		
-		 void LoadTriangleIntoBuffer() 
+		 void LoadTriangleIntoBuffer()
 		 {
 			vertexArray = glGenVertexArray();
 			vertexBuffer = glGenBuffer();
@@ -37,17 +37,17 @@ namespace SharpEngine
 		public Vector GetMinBounds() 
 		{
 			var min = this.Transform.Matrix * this.vertices[0].position;
-			for (var i = 1; i < this.vertices.Length; i++)
+			for (var i = 1; i < this.vertices.Length; i++) 
 			{
 				min = Vector.Min(min, this.Transform.Matrix * this.vertices[i].position);
 			}
 			return min;
 		}
             
-		public Vector GetMaxBounds()
+		public Vector GetMaxBounds() 
 		{
 			var max = this.Transform.Matrix * this.vertices[0].position;
-			for (var i = 1; i < this.vertices.Length; i++) 
+			for (var i = 1; i < this.vertices.Length; i++)
 			{
 				max = Vector.Max(max, this.Transform.Matrix * this.vertices[i].position);
 			}
@@ -66,8 +66,7 @@ namespace SharpEngine
 			this.material.SetTransform(this.Transform.Matrix);
 			glBindVertexArray(vertexArray);
 			glBindBuffer(GL_ARRAY_BUFFER, this.vertexBuffer);
-			fixed (Vertex* vertex = &this.vertices[0]) 
-			{
+			fixed (Vertex* vertex = &this.vertices[0]) {
 				glBufferData(GL_ARRAY_BUFFER, Marshal.SizeOf<Vertex>() * this.vertices.Length, vertex, GL_DYNAMIC_DRAW);
 			}
 			glDrawArrays(GL_TRIANGLES, 0, this.vertices.Length);

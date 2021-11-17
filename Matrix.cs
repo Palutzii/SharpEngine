@@ -1,7 +1,9 @@
 ﻿using System;
 
-namespace SharpEngine {
-	public struct Matrix {
+namespace SharpEngine 
+{
+	public struct Matrix 
+	{
 		// i wrote this line here manually:
 		public float m11, m12, m13, m14;
 		// i cloned above line and changed digits (3x):
@@ -22,13 +24,22 @@ namespace SharpEngine {
 			0, 0, 1, 0,
 			0, 0, 0, 1);
 
-		public static Vector operator *(Matrix m, Vector v) {
+		public static Vector operator *(Matrix m, Vector v) 
+		{
 			return new Vector(m.m11 * v.x + m.m12 * v.y + m.m13 * v.z + m.m14 * 1,
 							  m.m21 * v.x + m.m22 * v.y + m.m23 * v.z + m.m24 * 1,
 							  m.m31 * v.x + m.m32 * v.y + m.m33 * v.z + m.m34 * 1);
 		}
 		
-		public static Matrix operator *(Matrix a, Matrix b) {
+		public static Vector Transform(Matrix m, Vector v, float w = 1f)
+		{
+			return new Vector(m.m11 * v.x + m.m12 * v.y + m.m13 * v.z + m.m14 * w,
+				m.m21 * v.x + m.m22 * v.y + m.m23 * v.z + m.m24 * w,
+				m.m31 * v.x + m.m32 * v.y + m.m33 * v.z + m.m34 * w);
+		}
+		
+		public static Matrix operator *(Matrix a, Matrix b) 
+		{
 			return new Matrix(	b.m11*a.m11+b.m21*a.m12+b.m31*a.m13+b.m41*a.m14,
 				b.m12*a.m11+b.m22*a.m12+b.m32*a.m13+b.m42*a.m14,
 				b.m13*a.m11+b.m23*a.m12+b.m33*a.m13+b.m43*a.m14,
@@ -50,7 +61,8 @@ namespace SharpEngine {
 				b.m14*a.m41+b.m24*a.m42+b.m34*a.m43+b.m44*a.m44);
 		}
 
-		public static Matrix Translation(Vector translation) {
+		public static Matrix Translation(Vector translation)
+		{
 			var result = Identity;
 			result.m14 = translation.x;
 			result.m24 = translation.y;
@@ -58,7 +70,8 @@ namespace SharpEngine {
 			return result;
 		}
 
-		public static Matrix Scale(Vector scale) {
+		public static Matrix Scale(Vector scale) 
+		{
 			var result = Identity;
 			result.m11 = scale.x;
 			result.m22 = scale.y;
@@ -66,7 +79,8 @@ namespace SharpEngine {
 			return result;
 		}
 
-		static Matrix RotationX(float x) {
+		static Matrix RotationX(float x) 
+		{
 			var result = Identity;
 			result.m22 = MathF.Cos(x);
 			result.m23 = -MathF.Sin(x);
@@ -75,7 +89,8 @@ namespace SharpEngine {
 			return result;
 		}
 
-		static Matrix RotationY(float y) {
+		static Matrix RotationY(float y)
+		{
 			var result = Identity;
 			result.m11 = MathF.Cos(y);
 			result.m31 = -MathF.Sin(y);
@@ -84,7 +99,8 @@ namespace SharpEngine {
 			return result;
 		}
 
-		static Matrix RotationZ(float z) {
+		static Matrix RotationZ(float z) 
+		{
 			var result = Identity;
 			result.m11 = MathF.Cos(z);
 			result.m12 = -MathF.Sin(z);
@@ -93,7 +109,8 @@ namespace SharpEngine {
 			return result;
 		}
 
-		public static Matrix Rotation(Vector rotation) {
+		public static Matrix Rotation(Vector rotation)
+		{
 			return RotationZ(rotation.z) * RotationY(rotation.y) * RotationX(rotation.x);
 		}
 	}

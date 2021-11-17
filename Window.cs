@@ -1,18 +1,22 @@
 ﻿using GLFW;
 using static OpenGL.Gl;
 
-namespace SharpEngine {
-    public class Window {
+namespace SharpEngine 
+{
+    public class Window 
+    {
         readonly GLFW.Window window;
         Scene scene;
 
         public bool IsOpen() => !Glfw.WindowShouldClose(window);
 
-        public void Load(Scene scene) {
+        public void Load(Scene scene) 
+        {
             this.scene = scene;
         }
 		
-        public Window() {
+        public Window() 
+        {
             // initialize and configure
             Glfw.Init();
             Glfw.WindowHint(Hint.ClientApi, ClientApi.OpenGL);
@@ -29,16 +33,23 @@ namespace SharpEngine {
             OpenGL.Gl.Import(Glfw.GetProcAddress);
         }
 
-        static void ClearScreen() {
+        static void ClearScreen() 
+        {
             glClearColor(.2f, .05f, .2f, 1);
             glClear(GL_COLOR_BUFFER_BIT);
         }
 
-        public void Render() {
+        public void Render() 
+        {
             Glfw.PollEvents(); // react to window changes (position etc.)
             ClearScreen();
             this.scene?.Render();
             Glfw.SwapBuffers(window);
+        }
+
+        public bool GetKey(Keys key) 
+        {
+            return Glfw.GetKey(this.window, key) == InputState.Press;
         }
     }
 }

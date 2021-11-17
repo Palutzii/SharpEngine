@@ -1,13 +1,13 @@
 ﻿using System.Collections.Generic;
 
-namespace SharpEngine 
+namespace SharpEngine
 {
     public class Scene 
     {
 
         public List<Shape> triangles;
 
-        public Scene() 
+        public Scene()
         {
             triangles = new List<Shape>();
         }
@@ -17,9 +17,8 @@ namespace SharpEngine
             triangles.Add(shape);
         }
 
-        public void Render() 
-        {
-            for (int i = 0; i < this.triangles.Count; i++)
+        public void Render() {
+            for (int i = 0; i < this.triangles.Count; i++) 
             {
                 triangles[i].Render();
             }
